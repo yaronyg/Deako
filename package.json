@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/yaronyg/Deako#readme",
   "dependencies": {
-    "botbuilder": "^3.8.2"
+    "botbuilder": "^3.8.2",
+    "nconf": "^0.8.4",
+    "restify": "^4.3.0"
   }
 }
