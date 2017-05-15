@@ -1,0 +1,19 @@
+{
+  "name": "deako",
+  "version": "1.0.0",
+  "description": "Just hacking around with Deako",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yaronyg/Deako.git"
+  },
+  "author": "Yaron Y. Goland <yarong@microsoft.com> (http://www.goland.org/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yaronyg/Deako/issues"
+  },
+  "homepage": "https://github.com/yaronyg/Deako#readme"
+}
