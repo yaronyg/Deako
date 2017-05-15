@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/yaronyg/Deako/issues"
   },
-  "homepage": "https://github.com/yaronyg/Deako#readme"
+  "homepage": "https://github.com/yaronyg/Deako#readme",
+  "dependencies": {
+    "botbuilder": "^3.8.2"
+  }
 }
