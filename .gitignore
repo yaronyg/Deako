@@ -57,3 +57,5 @@ typings/
 # dotenv environment variables file
 .env
 
+# All our yummy secrets
+temporaryToken.json
