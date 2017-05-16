@@ -3,7 +3,11 @@ var restify = require('restify');
 var builder = require('botbuilder');
 var request = require('request');
 var config = nconf.env().argv().file({file: 'localConfig.json'});
-var temporaryToken = require('./temporaryToken.json').temporaryToken;
+var temporaryTokenFileLocation = './temporaryToken.json';
+var temporaryTokenFile = require(temporaryTokenFileLocation);
+var temporaryToken = temporaryTokenFile.temporaryToken;
+var appUuid = temporaryTokenFile.appUuid;
+var jsonFile = require('jsonFile');
 
 function createDeakoApplication(temporaryToken) {
   return new Promise(function (resolve, reject) {
@@ -161,18 +165,33 @@ function setDeviceState(temporaryToken, appUuid, action, target_uuid, value) {
   });
 }
 
+function setUpAppInfrastructure(temporaryToken) {
+  return new Promise(function (resolve, reject) {
+    if (appUuid) {
+      return resolve();
+    }
+    createDeakoApplication(temporaryToken)
+    .then(function (uuid) {
+      appUuid = uuid;
+      temporaryTokenFile.appUuid = appUuid;
+      jsonFile.writeFileSync(temporaryTokenFileLocation, temporaryTokenFile);
+      return getUserProfileUuid(temporaryToken);
+    })
+    .then(function (uuid) {
+      userUuid = uuid;
+      linkAppToUUID(temporaryToken, userUuid, appUuid);
+      resolve();
+    })
+    .catch(function (err) {
+      reject(err);
+    })
+  })
+}
 
-var appUuid;
+
 var userUuid; 
-createDeakoApplication(temporaryToken)
-.then(function (uuid) {
-  appUuid = uuid;
-  return getUserProfileUuid(temporaryToken);
-})
-.then(function (uuid) {
-  userUuid = uuid;
-  linkAppToUUID(temporaryToken, userUuid, appUuid);
-})
+
+setUpAppInfrastructure(temporaryToken)
 .then(function () {
   return deviceCapabilityDiscovery(temporaryToken, appUuid);
 })
@@ -181,7 +200,7 @@ createDeakoApplication(temporaryToken)
 })
 .then(function (deviceState) {
   var deviceUUID = deviceState.loads[0].uuid;
-  return setDeviceState(temporaryToken, appUuid, 'on', deviceUUID);
+  return setDeviceState(temporaryToken, appUuid, 'off', deviceUUID);
 })
 .catch(function (err) {
   throw err;
