@@ -85,6 +85,28 @@ function linkAppToUUID(temporaryToken, userUuid, appUuid) {
   });
 }
 
+function deviceCapabilityDiscovery(temporaryToken, appUuid) {
+  return new Promise(function (resolve, reject) {
+    var options = {
+      uri: `https://api.deako.com/api/v2s/integration/thirdparty/${appUuid}/discover`,
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${temporaryToken}`
+      }
+    }
+
+    request(options, (err, response, body) => {
+      console.log(`err: ${err}`);
+      console.log(`response: ${response}`);
+      console.log(`body: ${body}`);
+      if (response.statusCode !== 200) {
+        return reject(new Error('status code failure!'));
+      }
+      return resolve(JSON.parse(body));
+    });
+  });
+}
+
 function deviceStateDiscovery(temporaryToken, appUuid) {
     return new Promise(function (resolve, reject) {
     var options = {
@@ -102,10 +124,43 @@ function deviceStateDiscovery(temporaryToken, appUuid) {
       if (response.statusCode !== 200) {
         return reject(new Error('status code failure!'));
       }
-      return resolve(JSON.parse(body).loads[0].uuid);
+      return resolve(JSON.parse(body));
     });
   });
 }
+
+function setDeviceState(temporaryToken, appUuid, action, target_uuid, value) {
+  return new Promise(function (resolve, reject) {
+    var requestBodyObject = {
+      action: action,
+      target_uuid: target_uuid
+    }  
+    if (value) {
+      requestBodyObject.value = value;
+    }
+    
+    var options = {
+      uri: `https://api.deako.com/api/v2s/integration/thirdparty/${appUuid}/action`,
+      method: 'POST',
+      body: JSON.stringify(requestBodyObject),
+      headers: {
+        Authorization: `Bearer ${temporaryToken}`,
+        'content-type': 'application/json'
+      }
+    };
+
+    request(options, (err, response, body) => {
+      console.log(`err: ${err}`);
+      console.log(`response: ${response}`);
+      console.log(`body: ${body}`);
+      if (response.statusCode !== 200) {
+        return reject(new Error('Bad status code!'));
+      }
+      return resolve();
+    });
+  });
+}
+
 
 var appUuid;
 var userUuid; 
@@ -116,10 +171,17 @@ createDeakoApplication(temporaryToken)
 })
 .then(function (uuid) {
   userUuid = uuid;
-  return linkAppToUUID(temporaryToken, userUuid, appUuid);
+  linkAppToUUID(temporaryToken, userUuid, appUuid);
 })
 .then(function () {
-  deviceStateDiscovery(temporaryToken, appUuid);
+  return deviceCapabilityDiscovery(temporaryToken, appUuid);
+})
+.then(function (deviceCapabilities) {
+  return deviceStateDiscovery(temporaryToken, appUuid);
+})
+.then(function (deviceState) {
+  var deviceUUID = deviceState.loads[0].uuid;
+  return setDeviceState(temporaryToken, appUuid, 'on', deviceUUID);
 })
 .catch(function (err) {
   throw err;
