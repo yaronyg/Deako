@@ -3,18 +3,34 @@ var request = require('request');
 var restify = require('restify');
 var builder = require('botbuilder');
 var config = nconf.env().argv().file({file: 'localConfig.json'});
-var deakoAdaptor = require('./deakoAdaptor');
+var deakoAdapter = require('./deakoAdaptor');
 
-deakoAdaptor.setUpAppInfrastructure()
+var _devices = {};
+var _deviceStates = {};
+
+function deviceNameFromUuid(uuid) {
+  for (var k in _devices) {
+    if (_devices[k] == uuid) {
+      return k;
+    }
+  }
+}
+
+deakoAdapter.setUpAppInfrastructure()
 .then(function () {
-  return deakoAdaptor.deviceCapabilityDiscovery();
+  return deakoAdapter.deviceCapabilityDiscovery();
 })
 .then(function (deviceCapabilities) {
-  return deakoAdaptor.deviceStateDiscovery();
+  if (deviceCapabilities) {
+    deviceCapabilities.loads.forEach(d => {
+      _devices[d.name] = d.uuid;
+    })
+  }
+  return deakoAdapter.deviceStateDiscovery();
 })
 .then(function (deviceState) {
   var deviceUUID = deviceState.loads[0].uuid;
-  return deakoAdaptor.setDeviceState('off', deviceUUID);
+  return deakoAdapter.setDeviceState('off', deviceUUID);
 })
 .catch(function (err) {
   throw err;
@@ -47,7 +63,7 @@ function turnOn(session, switchName) {
   if (switchName) {
     Object.keys(_devices).forEach((e) => {
         if (e.toLowerCase().indexOf(switchName.toLowerCase()) != -1) {
-            deakoAdaptor.setDeviceState(temporaryToken, appUuid, "on", _devices[e])
+            deakoAdapter.setDeviceState("on", _devices[e])
             .then(result => {
               var msg = "Turning on the " + e;
               session.say(msg, msg);
@@ -61,7 +77,7 @@ function turnOff(session, switchName) {
   if (switchName) {
     Object.keys(_devices).forEach((e) => {
         if (e.toLowerCase().indexOf(switchName.toLowerCase()) != -1) {
-            deakoAdaptor.setDeviceState(temporaryToken, appUuid, "off", _devices[e])
+            deakoAdapter.setDeviceState("off", _devices[e])
             .then(result => {
               var msg = "Turning off the " + e;
               session.say(msg, msg);
@@ -100,7 +116,7 @@ function getStateCard(session) {
 }
 
 function queryState(session) {
-  deviceStateDiscovery(temporaryToken, appUuid)
+  deakoAdapter.deviceStateDiscovery()
   .then((result) => {
     if (result && result.loads) {
       result.loads.forEach((e) => {
