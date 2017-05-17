@@ -47,7 +47,7 @@ function turnOn(session, switchName) {
   if (switchName) {
     Object.keys(_devices).forEach((e) => {
         if (e.toLowerCase().indexOf(switchName.toLowerCase()) != -1) {
-            setDeviceState(temporaryToken, appUuid, "on", _devices[e])
+            deakoAdaptor.setDeviceState(temporaryToken, appUuid, "on", _devices[e])
             .then(result => {
               var msg = "Turning on the " + e;
               session.say(msg, msg);
@@ -61,7 +61,7 @@ function turnOff(session, switchName) {
   if (switchName) {
     Object.keys(_devices).forEach((e) => {
         if (e.toLowerCase().indexOf(switchName.toLowerCase()) != -1) {
-            setDeviceState(temporaryToken, appUuid, "off", _devices[e])
+            deakoAdaptor.setDeviceState(temporaryToken, appUuid, "off", _devices[e])
             .then(result => {
               var msg = "Turning off the " + e;
               session.say(msg, msg);
