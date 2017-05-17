@@ -90,6 +90,17 @@ function linkAppToUUID(temporaryToken, userUuid, appUuid) {
   });
 }
 
+var _devices = {};
+var _deviceStates = {};
+
+function deviceNameFromUuid(uuid) {
+  for (var k in _devices) {
+    if (_devices[k] === uuid) {
+      return k;
+    }
+  }
+}
+
 function deviceCapabilityDiscovery(temporaryToken, appUuid) {
   return new Promise(function (resolve, reject) {
     var options = {
@@ -104,9 +115,14 @@ function deviceCapabilityDiscovery(temporaryToken, appUuid) {
       console.log(`err: ${err}`);
       console.log(`response: ${response}`);
       console.log(`body: ${body}`);
-      if (response.statusCode !== 200) {
-        return reject(new Error('status code failure!'));
+
+      if (err || response.statusCode !== 200) {
+        return reject(new Error("Error discovering device caps: " + err));
       }
+      var jsonBody = JSON.parse(body);
+      jsonBody.loads.forEach((e) => {
+        _devices[e.name] = e.uuid;
+      });
       return resolve(JSON.parse(body));
     });
   });
@@ -216,7 +232,12 @@ function _askLUIS(appId, subKey, q) {
             method: 'GET'
         };
         request(options, (err, response, body) => {
+          if (err || response.statusCode != 200) {
+            reject(err);
+          }
+          else {
             resolve(JSON.parse(body));
+          }
         })
     })
 }
@@ -226,12 +247,77 @@ function askLUIS(q) {
 }
 
 function turnOn(session, switchName) {
+  if (switchName) {
+    Object.keys(_devices).forEach((e) => {
+        if (e.toLowerCase().indexOf(switchName.toLowerCase()) != -1) {
+            setDeviceState(temporaryToken, appUuid, "on", _devices[e])
+            .then(result => {
+              var msg = "Turning on the " + e;
+              session.say(msg, msg);
+            });
+        }
+    });
+  }
 }
 
 function turnOff(session, switchName) {
+  if (switchName) {
+    Object.keys(_devices).forEach((e) => {
+        if (e.toLowerCase().indexOf(switchName.toLowerCase()) != -1) {
+            setDeviceState(temporaryToken, appUuid, "off", _devices[e])
+            .then(result => {
+              var msg = "Turning off the " + e;
+              session.say(msg, msg);
+            });
+        };
+    });
+  }
+}
+
+function getStateCard(session) {
+
+  let card = new builder.HeroCard(session)
+  .title("Switch States")
+  .text("ipsum loren");
+
+  var images = [];
+  var buttons = [];
+
+  var imageUri = "https://image.shutterstock.com/z/stock-photo-classic-light-bulb-turned-off-isolated-on-white-with-clipping-path-59300515.jpg";
+
+  for (var k in _deviceStates) {
+    var state = _deviceStates[k];
+    if (state.power == 1) {
+      imageUri = "http://media.istockphoto.com/photos/isolated-shot-of-illuminated-light-bulb-on-white-background-picture-id480003160";
+    }
+
+    var deviceName = deviceNameFromUuid(k);
+    var command = "Turn " + (state.power ? "off" : "on") + " the " + deviceName;
+    buttons.push(builder.CardAction.postBack(session, command, command));
+  };
+
+  card.images([builder.CardImage.create(session, imageUri)]);
+  card.buttons(buttons);
+
+  return card;
 }
 
 function queryState(session) {
+  deviceStateDiscovery(temporaryToken, appUuid)
+  .then((result) => {
+    if (result && result.loads) {
+      result.loads.forEach((e) => {
+        _deviceStates[e.uuid] = e;
+      });
+
+      let message = new builder.Message(session);
+      message.attachments([getStateCard(session)]);
+      session.send(message);
+    }
+    else {
+      console.log("Error querying device state")
+    }
+  });
 }
 
 function main() {
@@ -276,6 +362,11 @@ function main() {
                     else {
                         turnOff(session);
                     }
+                }
+                break;
+
+                case 'queryState' : {
+                  queryState(session);
                 }
                 break;
 
