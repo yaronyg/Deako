@@ -4,6 +4,7 @@ var restify = require('restify');
 var builder = require('botbuilder');
 var config = nconf.env().argv().file({file: 'localConfig.json'});
 var deakoAdapter = require('./deakoAdaptor');
+var express = require('express');
 
 var _devices = {};
 var _deviceStates = {};
@@ -212,7 +213,7 @@ function setUpServerEnvironment() {
         });
     });
 
-    var server = restify.createServer();
+    var server = express(); // restify.createServer();
     server.post('/api/messages', connector.listen());
     return server;
 }
