@@ -16,17 +16,20 @@ function deviceNameFromUuid(uuid) {
   }
 }
 
-function logToGraph(state) {
+function logToGraph(name, id, state) {
 
   var body = {
-    state: state
+    id : id,
+    name : name,
+    state: state,
+    time : parseInt(Date.now() / 1000)
   };
 
   return new Promise(function (resolve, reject) {
     var options = {
-      uri: 'https://api.deako.com/api/v2s/profiles',
+      uri: config.get("LOGGING_URI"),
       method: 'POST',
-      body : JSON.stringify(state)
+      body : JSON.stringify(body)
     }
 
     request(options, (err, response, body) => {
@@ -92,6 +95,7 @@ function turnOn(session, switchName) {
             .then(result => {
               var msg = "Turning on the " + e;
               session.say(msg, msg);
+              logToGraph(switchName, _devices[e], { state:'on' });
             });
         }
     });
@@ -106,6 +110,7 @@ function turnOff(session, switchName) {
             .then(result => {
               var msg = "Turning off the " + e;
               session.say(msg, msg);
+              logToGraph(switchName, _devices[e], { state:'off' });
             });
         };
     });
