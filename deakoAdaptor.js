@@ -99,7 +99,7 @@ module.exports.deviceCapabilityDiscovery = function () {
       console.log(`err: ${err}`);
       console.log(`response: ${response}`);
       console.log(`body: ${body}`);
-      if (response.statusCode !== 200) {
+      if (err || response.statusCode !== 200) {
         return reject(new Error('status code failure!'));
       }
       return resolve(JSON.parse(body));
