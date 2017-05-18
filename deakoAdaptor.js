@@ -107,7 +107,7 @@ module.exports.deviceCapabilityDiscovery = function () {
   });
 }
 
-module.exports.deviceStateDiscovery = function () {
+module.exports.deviceStateDiscovery = function (context) {
     return new Promise(function (resolve, reject) {
     var options = {
       uri: `https://api.deako.com/api/v2s/integration/thirdparty/${appUuid}/query`,
@@ -118,6 +118,11 @@ module.exports.deviceStateDiscovery = function () {
     }
 
     request(options, (err, response, body) => {
+        if (context) {
+            context.log(`err: ${err}`);
+            context.log(`response: ${response}`);
+            context.log(`body: ${body}`);
+        }
       console.log(`err: ${err}`);
       console.log(`response: ${response}`);
       console.log(`body: ${body}`);

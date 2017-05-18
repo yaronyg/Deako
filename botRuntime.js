@@ -164,6 +164,8 @@ function queryState(session) {
   });
 }
 
+var log;
+
 function setUpServerEnvironment() {
     // Create chat bot
     var connector = new builder.ChatConnector({
@@ -214,7 +216,12 @@ function setUpServerEnvironment() {
     });
 
     var server = express(); // restify.createServer();
-    server.post('/api/messages', connector.listen());
+    var listener = connector.listen();
+    server.post('/api/messages', (req, res) => {
+        log = req.context.log;
+        log(JSON.stringify(config.get()));
+        listener(req, res);
+    });
     return server;
 }
 
