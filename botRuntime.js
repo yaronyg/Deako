@@ -17,6 +17,31 @@ function deviceNameFromUuid(uuid) {
   }
 }
 
+function logToGraph(state) {
+
+  var body = {
+    state: state
+  };
+
+  return new Promise(function (resolve, reject) {
+    var options = {
+      uri: 'https://api.deako.com/api/v2s/profiles',
+      method: 'POST',
+      body : JSON.stringify(state)
+    }
+
+    request(options, (err, response, body) => {
+      console.log(`err: ${err}`);
+      console.log(`response: ${response}`);
+      console.log(`body: ${body}`);
+      if (response.statusCode !== 200) {
+        return reject(new Error('status code failure!'));
+      }
+      return resolve(response);
+    });
+  });
+}
+
 deakoAdapter.setUpAppInfrastructure()
 .then(function () {
   return deakoAdapter.deviceCapabilityDiscovery();
