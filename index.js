@@ -163,7 +163,8 @@ function main() {
                         turnOn(session, response.entities[0].entity);
                     }
                     else {
-                        turnOn(session);
+                      var msg = "Umm. Premium feature?"
+                      session.say(msg, msg)
                     }
                 }
                 break;
@@ -173,7 +174,8 @@ function main() {
                         turnOff(session, response.entities[0].entity);
                     }
                     else {
-                        turnOff(session);
+                      var msg = "Umm. Premium feature?"
+                      session.say(msg, msg)
                     }
                 }
                 break;
@@ -184,7 +186,8 @@ function main() {
                 break;
 
                 default : {
-                    session.send("Come again?", "Come again?");
+                    var msg = "Did we come here to talk or switch lights?"
+                    session.say(msg, msg);
                 }
             }
         });
