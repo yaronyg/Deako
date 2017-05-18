@@ -19,6 +19,7 @@
   "dependencies": {
     "azure-function-express": "^1.2.2",
     "botbuilder": "^3.8.2",
+    "express": "^4.15.3",
     "jsonfile": "^3.0.0",
     "nconf": "^0.8.4",
     "request": "^2.81.0",
